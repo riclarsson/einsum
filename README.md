@@ -73,14 +73,17 @@ to point either at the true `<mdspan>` or set up the path to a compatible refere
 # Origin and differences
 
 This library is mostly based on the [numpy.einsum](https://numpy.org/devdocs/reference/generated/numpy.einsum.html) operations.
-There are a few changes is notation and two severe limitations.
+There are a few changes in notation and two severe limitations.
 
-The way matrix multiplication is written in `numpy` is:
+## Notation change
+
+The change is in the way the notation is expressed.
+For instance, the way matrix multiplication is written in `numpy` is:
 
 ```python
 from numpy import einsum
 ...
-c = einsum('ij,jh->ih', a, b)
+c = einsum('ij,jh->ih', A, B)
 ```
 
 This library writes the same operations as
@@ -88,13 +91,17 @@ This library writes the same operations as
 ```cpp
 #include <ein.h>
 ...
-ein::sum<"ih", "ij", "jh">(c, a, b);
+ein::sum<"ih", "ij", "jh">(C, A, B);
 ```
+
+## No type conversion or creation - sizes must be pre-set
 
 The first limitation is that the `numpy` approach allows any numpy-compatible types, however the C++ header only allows `std::mdspan`
 for multi-dimensional arrays, and any type with `a[std::size_t{}]`-style index access operator that returns an integer representing
 the size when passed to `std::ranges::size()`.  If you want to use unlimited ranges, ensure that they are defined so that the
 size of the index is derived from other inputs earlier in the call-chain.
+
+## No extension to all dimensions
 
 The second limitation is that the `numpy` approach allows `...` notation to indicate that the operation is repeated.
 The C++ header requires the indices for all dimensions to be set.
