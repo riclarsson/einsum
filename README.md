@@ -51,7 +51,7 @@ ein::sum<"i", "ij", "j">(b, A, a | std::views::transform([](auto x) {
 ## Matrix-Matrix multiplication
 
 ```cpp
-ein::sum<"ij", "jk", "ik">(C, A, B);  // C = A * B;
+ein::sum<"pi", "im", "pm">(C, A, B);  // C = A * B;
 ```
 
 ## Complicated equation
