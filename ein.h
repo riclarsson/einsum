@@ -36,10 +36,6 @@ consteval char char_() {
   if constexpr (N == 0 and M == 0) {
     return '\0';
   } else if constexpr (N != 0) {
-    //! NOTE: Here is a good place to add optimizations
-    //        for specific cases, such as empty sparse arrays
-    //        returning '\0' short-circuits the reduction
-
     return lh.front();
   } else if constexpr (M != 0) {
     return char_<rh...>();
