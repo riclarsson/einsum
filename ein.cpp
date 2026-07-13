@@ -1,11 +1,11 @@
 #include "ein.h"
 
+#include <cmath>
 #include <print>
 #include <ranges>
 #include <vector>
 
 namespace stdv = std::ranges::views;
-namespace stdx = std::experimental;
 
 namespace {
 void test_sum() {
@@ -35,15 +35,13 @@ void test_sum() {
       b, a, a | stdv::transform([](double x) { return std::exp(-x); }));
   std::println("a .* exp(-a)   = {}", b);
 
-  std::println("Importantly, you can deal with 'tensors':");
-  stdx::mdspan<const double, stdx::dextents<std::size_t, 2>> A(
-      a.data(), std::array{2, 2});
-  std::println(R"(A              = [[{}, {}],
+  std::print("Importantly, you can deal with 'tensors':");
+  std::mdspan<const double, std::dextents<std::size_t, 2>> A(a.data(),
+                                                             std::array{2, 2});
+  std::println(R"(
+A              = [[{}, {}],
                   [{}, {}]])",
-               A[0, 0],
-               A[0, 1],
-               A[1, 0],
-               A[1, 1]);
+               A[0, 0], A[0, 1], A[1, 0], A[1, 1]);
   const std::vector<double> B{3, -2};
   std::println("B              = {}^T", B);
 
@@ -61,7 +59,8 @@ void test_sum() {
   std::println("A^T * (B .* B) = {}", c);
 
   std::println(
-      "Note that ein::sum is not optimized in this example, so you may want to modify it to use appropriate optimizations for specific cases.");
+      "Note that ein::sum is not optimized in this example, so you may want to "
+      "modify it to use appropriate optimizations for specific cases.");
 }
 
 void test_tra() {
@@ -71,9 +70,10 @@ void test_tra() {
   double v{};
   ein::tra<"", "i">(
       v,
-      [](const auto& x) {
+      [](const auto &x) {
         double v{};
-        for (const auto& xi : x) v += xi;
+        for (const auto &xi : x)
+          v += xi;
         return v;
       },
       a);
@@ -82,9 +82,10 @@ void test_tra() {
   v = 1.0;
   ein::tra<"", "i">(
       v,
-      [](const auto& x) {
+      [](const auto &x) {
         double v{1.0};
-        for (const auto& xi : x) v *= xi;
+        for (const auto &xi : x)
+          v *= xi;
         return v;
       },
       a);
@@ -93,62 +94,60 @@ void test_tra() {
   v = 0.0;
   ein::tra<"", "i", "i">(
       v,
-      [](const auto& x, const auto& y) {
+      [](const auto &x, const auto &y) {
         double v{};
-        for (const auto& [xi, yi] : stdv::zip(x, y)) v += xi * yi;
+        for (const auto &[xi, yi] : stdv::zip(x, y))
+          v += xi * yi;
         return v;
       },
-      a,
-      a);
+      a, a);
   std::println("sum(dot(a, a)) = {}", v);
 
   v = 1.0;
   ein::tra<"", "i", "i">(
       v,
-      [](const auto& x, const auto& y) {
+      [](const auto &x, const auto &y) {
         double v{1.0};
-        for (const auto& [xi, yi] : stdv::zip(x, y)) v *= xi * yi;
+        for (const auto &[xi, yi] : stdv::zip(x, y))
+          v *= xi * yi;
         return v;
       },
-      a,
-      a);
+      a, a);
   std::println("gam(dot(a, a)) = {}", v);
 
   v = 0.0;
   ein::tra<"", "i">(
       v,
-      [](const auto& x) {
+      [](const auto &x) {
         double v{};
-        for (const auto& xi : x) v += xi * xi;
+        for (const auto &xi : x)
+          v += xi * xi;
         return std::sqrt(v);
       },
       a);
   std::println("hypot(a)       = {}", v);
 
-  stdx::mdspan<const double, stdx::dextents<std::size_t, 2>> A(
-      a.data(), std::array{2, 2});
+  std::mdspan<const double, std::dextents<std::size_t, 2>> A(a.data(),
+                                                             std::array{2, 2});
   std::println(R"(A              = [[{}, {}],
                   [{}, {}]])",
-               A[0, 0],
-               A[0, 1],
-               A[1, 0],
-               A[1, 1]);
+               A[0, 0], A[0, 1], A[1, 0], A[1, 1]);
   const std::vector<double> B{3, -2};
   std::println("B              = {}^T", B);
 
   std::vector<double> C(2);
   ein::tra<"i", "ij", "j">(
       C,
-      [](const auto& x, const auto& y) {
+      [](const auto &x, const auto &y) {
         double v{};
-        for (const auto& [xi, yi] : stdv::zip(x, y)) v += xi * yi;
+        for (const auto &[xi, yi] : stdv::zip(x, y))
+          v += xi * yi;
         return v;
       },
-      A,
-      B);
+      A, B);
   std::println("A * B          = {}", C);
 }
-}  // namespace
+} // namespace
 
 int main() {
   std::println("EIN::SUM tests");

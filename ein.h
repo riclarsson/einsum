@@ -1,18 +1,16 @@
 #include <algorithm>
 #include <array>
-#include <experimental/mdspan>
 #include <limits>
+#include <mdspan>
 #include <ranges>
 #include <tuple>
 #include <utility>
 
 namespace ein {
-namespace stdx = std::experimental;
 namespace stdr = std::ranges;
 
 namespace {
-template <std::size_t N>
-struct str_ {
+template <std::size_t N> struct str_ {
   consteval str_(const char (&in)[N]) { stdr::copy_n(in, N, str); }
   char str[N];
 
@@ -23,13 +21,9 @@ struct str_ {
   }
 };
 
-template <std::array cs>
-consteval bool empty_() {
-  return cs.size() == 0;
-}
+template <std::array cs> consteval bool empty_() { return cs.size() == 0; }
 
-template <std::array lh, std::array... rh>
-consteval char char_() {
+template <std::array lh, std::array... rh> consteval char char_() {
   constexpr std::size_t N = lh.size();
   constexpr std::size_t M = sizeof...(rh);
 
@@ -44,19 +38,19 @@ consteval char char_() {
   }
 }
 
-template <char c, std::array cs>
-consteval std::size_t find_() {
+template <char c, std::array cs> consteval std::size_t find_() {
   constexpr std::size_t N = cs.size();
 
   for (std::size_t i = 0; i < N; ++i) {
-    if (cs[i] == c) return i;
+    if (cs[i] == c)
+      return i;
   }
 
   return std::numeric_limits<std::size_t>::max();
 }
 
 template <char c, std::array cf, std::array... cs>
-constexpr std::size_t size_(const auto& xf, const auto&... xs) {
+constexpr std::size_t size_(const auto &xf, const auto &...xs) {
   constexpr std::size_t N = cf.size();
 
   if constexpr (N > 0 and char_<cf>() == c) {
@@ -80,8 +74,7 @@ constexpr std::size_t size_(const auto& xf, const auto&... xs) {
   }
 }
 
-template <char c, std::array cs>
-consteval auto drop_() {
+template <char c, std::array cs> consteval auto drop_() {
   constexpr std::size_t N = cs.size();
 
   std::array<char, N - 1> result{};
@@ -97,18 +90,17 @@ consteval auto drop_() {
   return result;
 }
 
-template <char c, std::array cs>
-consteval std::size_t count_() {
+template <char c, std::array cs> consteval std::size_t count_() {
   constexpr std::size_t N = cs.size();
-  std::size_t n           = 0;
+  std::size_t n = 0;
 
-  for (std::size_t i = 0; i < N; ++i) n += cs[i] == c;
+  for (std::size_t i = 0; i < N; ++i)
+    n += cs[i] == c;
 
   return n;
 }
 
-template <char c, std::array cs>
-consteval auto redrank_() {
+template <char c, std::array cs> consteval auto redrank_() {
   if constexpr (count_<c, cs>() == 0) {
     return cs;
   } else {
@@ -116,15 +108,14 @@ consteval auto redrank_() {
   }
 }
 
-template <std::size_t N>
-consteval std::array<stdx::full_extent_t, N> jokers_() {
-  std::array<stdx::full_extent_t, N> out;
-  out.fill(stdx::full_extent);
+template <std::size_t N> consteval std::array<std::full_extent_t, N> jokers_() {
+  std::array<std::full_extent_t, N> out;
+  out.fill(std::full_extent);
   return out;
 }
 
 template <std::size_t M, std::size_t N, typename T>
-[[nodiscard]] constexpr auto tup_(T&& i)
+[[nodiscard]] constexpr auto tup_(T &&i)
   requires(M < N)
 {
   constexpr std::size_t l = M;
@@ -133,7 +124,7 @@ template <std::size_t M, std::size_t N, typename T>
   static_assert(l < N, "Left must be less than N");
   static_assert(r < N, "Right must be less than N");
 
-  constexpr bool has_left  = l > 0;
+  constexpr bool has_left = l > 0;
   constexpr bool has_right = r > 0;
 
   if constexpr (has_left and has_right) {
@@ -153,18 +144,18 @@ template <std::size_t M, std::size_t N, typename T>
 }
 
 template <std::size_t M, std::size_t N, typename Self>
-constexpr decltype(auto) sub_(Self&& s, std::size_t i)
+constexpr decltype(auto) sub_(Self &&s, std::size_t i)
   requires(M < N)
 {
   return std::apply(
-      [&s]<typename... AccT>(AccT&&... x) {
-        return stdx::submdspan(s, std::forward<AccT>(x)...);
+      [&s]<typename... AccT>(AccT &&...x) {
+        return std::submdspan(s, std::forward<AccT>(x)...);
       },
       tup_<M, N>(i));
 }
 
 template <char c, std::array cs, typename T>
-constexpr decltype(auto) reddim_(T&& arr, std::size_t i [[maybe_unused]]) {
+constexpr decltype(auto) reddim_(T &&arr, std::size_t i [[maybe_unused]]) {
   constexpr std::size_t N = cs.size();
   constexpr std::size_t n = count_<c, cs>();
 
@@ -181,8 +172,7 @@ constexpr decltype(auto) reddim_(T&& arr, std::size_t i [[maybe_unused]]) {
   }
 }
 
-template <typename T, std::array... cs>
-T redsum_(const auto&... xs) {
+template <typename T, std::array... cs> T redsum_(const auto &...xs) {
   if constexpr ((empty_<cs>() and ...)) {
     return (... * static_cast<T>(xs));
   } else {
@@ -203,13 +193,13 @@ T redsum_(const auto&... xs) {
 }
 
 template <std::array rs, std::array... cs>
-constexpr void sum_(auto&& xr, const auto&... xs) {
+constexpr void sum_(auto &&xr, const auto &...xs) {
   if constexpr (empty_<rs>()) {
     using T = std::remove_cvref_t<decltype(xr)>;
-    xr      = redsum_<T, cs...>(xs...);
+    xr = redsum_<T, cs...>(xs...);
   }
 
-  /*! NOTE: 
+  /*! NOTE:
    * Here is a good place to add optimizations
    * for specific cases, such as copy, matmul, etc.
    * For instance, any "i", "ij", "j" pattern is a
@@ -231,7 +221,7 @@ constexpr void sum_(auto&& xr, const auto&... xs) {
 }
 
 template <std::array rs, std::array... cs, class Transform>
-constexpr void tra_(auto&& xr, Transform tra, const auto&... xs) {
+constexpr void tra_(auto &&xr, Transform tra, const auto &...xs) {
   if constexpr (empty_<rs>()) {
     xr = tra(xs...);
   } else if constexpr (constexpr char first_char = char_<rs>();
@@ -244,20 +234,20 @@ constexpr void tra_(auto&& xr, Transform tra, const auto&... xs) {
     }
   }
 }
-}  // namespace
+} // namespace
 
 template <str_ sr, str_... si>
-constexpr void sum(auto&& xr, const auto&... xi)
+constexpr void sum(auto &&xr, const auto &...xi)
   requires(sizeof...(si) == sizeof...(xi))
 {
   sum_<sr.to_array(), si.to_array()...>(std::forward<decltype(xr)>(xr), xi...);
 }
 
 template <str_ sr, str_... si, class Transform>
-constexpr void tra(auto&& xr, Transform tra, const auto&... xi)
+constexpr void tra(auto &&xr, Transform tra, const auto &...xi)
   requires(sizeof...(si) == sizeof...(xi))
 {
-  tra_<sr.to_array(), si.to_array()...>(
-      std::forward<decltype(xr)>(xr), std::move(tra), xi...);
+  tra_<sr.to_array(), si.to_array()...>(std::forward<decltype(xr)>(xr),
+                                        std::move(tra), xi...);
 }
-}  // namespace ein
+} // namespace ein
